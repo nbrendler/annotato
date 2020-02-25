@@ -1,4 +1,4 @@
-# annotately
+# annotatively
 
 ## CLI Commands
 
