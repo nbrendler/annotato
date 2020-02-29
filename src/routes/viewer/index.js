@@ -1,70 +1,78 @@
-import { h, Component } from "preact";
-import { gql, useQuery } from "@apollo/client";
+import { h } from "preact";
+import { useState } from "preact/hooks";
+import { gql, useQuery, useLazyQuery } from "@apollo/client";
 
 import style from "./style.css";
 import LeftNav from "../../components/left-nav";
 import Content from "../../components/content";
 
-export default class Viewer extends Component {
-  state = {
-    current_oid: null
-  };
+export const Viewer = ({ owner, repo_name, path }) => {
+  const { loading, error, data } = useQuery(INITIAL_QUERY, {
+    variables: { owner, repo_name }
+  });
 
-  componentDidMount() {
-    this.setOid = this.setOid.bind(this);
+  const [oid, setOid] = useState(null);
+  const [
+    getContent,
+    { loading: contentLoading, error: contentError, data: contentData }
+  ] = useLazyQuery(
+    GET_CONTENT,
+    {
+      variables: { owner, repo_name, oid }
+    },
+    [oid]
+  );
+
+  // Callback for the folder tree to report new files loading
+  function onClick(obj) {
+    setOid(obj.oid);
+    getContent();
   }
 
-  componentWillUnmount() {}
-
-  setDefaultOid(repo) {
-    let readme_oids = repo.files.filter(f => f.name in ["README", "README.md"]);
-    if (readme_oids.length > 0) {
-      this.setState({ current_oid: readme_oids[0].oid });
-    }
+  if (loading) {
+    return <span>loading!</span>;
+  }
+  let e = error || contentError;
+  if (e) {
+    return <span>{e.message}</span>;
   }
 
-  setOid(f) {
-    this.setState({ current_oid: f.oid });
-  }
+  return (
+    <div class={style.viewer}>
+      <LeftNav
+        owner={owner}
+        repo_name={repo_name}
+        root={data}
+        oid={null}
+        onItemClick={onClick}
+      />
+      <Content
+        loading={contentLoading}
+        text={contentData?.repo.content?.text || data?.repo.readme?.text}
+      />
+    </div>
+  );
+};
 
-  render({ owner, repo_name, path }, { current_oid }) {
-    const { loading, error, data } = useQuery(fileQuery, {
-      variables: { owner, repo_name, current_oid, exp: `master:${path}` }
-    });
-
-    if (loading) {
-      return <span>loading!</span>;
-    }
-    if (error) {
-      return <span>{error}</span>;
-    }
-    if (current_oid === null) {
-      //this.setDefaultOid(repository);
-    }
-    return (
-      <div class={style.viewer}>
-        <LeftNav
-          files={data.repository.files.entries}
-          onItemClick={this.setOid}
-        />
-        {data.repository.content ? (
-          <Content text={data.repository.content.text} />
-        ) : null}
-      </div>
-    );
-  }
-}
-
-const fileQuery = gql`
-  query RepoFiles(
-    $owner: String!
-    $repo_name: String!
-    $oid: GitObjectID
-    $current_oid: GitObjectID
-    $exp: String = "master:"
-  ) {
-    repository(name: $repo_name, owner: $owner) {
-      files: object(expression: $exp, oid: $oid) {
+const INITIAL_QUERY = gql`
+  query RepoFiles($owner: String!, $repo_name: String!) {
+    repo: repository(name: $repo_name, owner: $owner) {
+      id
+      default_branch: defaultBranchRef {
+        name
+      }
+      branches: refs(refPrefix: "refs/heads/", first: 100) {
+        nodes {
+          name
+        }
+        totalCount
+      }
+      readme: object(expression: "HEAD:README.md") {
+        ... on Blob {
+          text
+        }
+      }
+      items: object(expression: "HEAD:") {
         ... on Tree {
           entries {
             name
@@ -73,7 +81,17 @@ const fileQuery = gql`
           }
         }
       }
-      content: object(oid: $current_oid) {
+    }
+  }
+`;
+const GET_CONTENT = gql`
+  query Content($owner: String!, $repo_name: String!, $oid: GitObjectID) {
+    repo: repository(name: $repo_name, owner: $owner) {
+      id
+      content: object(oid: $oid) {
+        ... on GitObject {
+          oid
+        }
         ... on Blob {
           text
         }
@@ -81,3 +99,5 @@ const fileQuery = gql`
     }
   }
 `;
+
+export default Viewer;

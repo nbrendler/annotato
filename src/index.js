@@ -28,10 +28,21 @@ const authLink = setContext((_, { headers }) => {
 
 const httpLink = new HttpLink({ uri: GITHUB_API });
 
+const cacheFn = o => {
+  if (["TreeEntry", "Tree", "Blob"].indexOf(o.__typename) > -1) {
+    return o.oid;
+  }
+  if (o.__typename === "Repository") {
+    return o.id;
+  }
+  console.log("not cached", o);
+};
+
 const client = new ApolloClient({
   link: authLink.concat(httpLink),
-  cache: new InMemoryCache(),
-  ssr: false
+  cache: new InMemoryCache({
+    dataIdFromObject: cacheFn
+  })
 });
 
 export default () => (

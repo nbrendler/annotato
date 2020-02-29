@@ -9,9 +9,7 @@ const LANG = {
   commentFilter: /(^#![/]|^\s*#\{)/
 };
 
-export const parse = content => {
-  let lines = content.split("\n");
-
+export const parse = (content, lang = null) => {
   let sections = [];
 
   let hasCode = "";
@@ -22,6 +20,14 @@ export const parse = content => {
     sections.push({ docsText, codeText });
     hasCode = docsText = codeText = "";
   }
+
+  if (lang == "markdown") {
+    docsText = content;
+    save();
+    return sections;
+  }
+
+  let lines = content.split("\n");
 
   lines.forEach(line => {
     if (line.match(LANG.commentMatcher) && !line.match(LANG.commentFilter)) {
@@ -40,7 +46,6 @@ export const parse = content => {
   });
   save();
 
-  console.log("parse", sections);
   return sections;
 };
 
