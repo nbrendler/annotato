@@ -35,7 +35,6 @@ const cacheFn = o => {
   if (o.__typename === "Repository") {
     return o.id;
   }
-  console.log("not cached", o);
 };
 
 const client = new ApolloClient({

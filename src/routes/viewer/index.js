@@ -8,7 +8,7 @@ import Content from "../../components/content";
 
 export const Viewer = ({ owner, repo_name, path }) => {
   const { loading, error, data } = useQuery(INITIAL_QUERY, {
-    variables: { owner, repo_name }
+    variables: { owner, repo_name, exp: `HEAD:${path}` }
   });
 
   const [state, setState] = useState({ oid: null, name: null });
@@ -37,6 +37,8 @@ export const Viewer = ({ owner, repo_name, path }) => {
     return <span>{e.message}</span>;
   }
 
+  console.log(path);
+
   return (
     <div class={style.viewer}>
       <LeftNav
@@ -56,7 +58,7 @@ export const Viewer = ({ owner, repo_name, path }) => {
 };
 
 const INITIAL_QUERY = gql`
-  query RepoFiles($owner: String!, $repo_name: String!) {
+  query RepoFiles($owner: String!, $repo_name: String!, $exp: String!) {
     repo: repository(name: $repo_name, owner: $owner) {
       id
       default_branch: defaultBranchRef {
@@ -73,7 +75,7 @@ const INITIAL_QUERY = gql`
           text
         }
       }
-      items: object(expression: "HEAD:") {
+      items: object(expression: $exp) {
         ... on Tree {
           entries {
             name
