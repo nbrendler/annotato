@@ -4,13 +4,13 @@ import { useMemo } from "preact/hooks";
 import { parse, format } from "../../lib/lp.js";
 import styles from "./styles";
 
-const Content = ({ text, loading }) => {
+const Content = ({ name, text, loading }) => {
   const memoized = useMemo(() => {
     let sections = [];
 
-    sections = format(parse(text));
+    sections = format(parse(text, name));
     return sections;
-  }, [text]);
+  }, [text, name]);
 
   // TODO: render a loading image
   if (loading) return "loading!";

@@ -11,21 +11,21 @@ export const Viewer = ({ owner, repo_name, path }) => {
     variables: { owner, repo_name }
   });
 
-  const [oid, setOid] = useState(null);
+  const [state, setState] = useState({ oid: null, name: null });
   const [
     getContent,
     { loading: contentLoading, error: contentError, data: contentData }
   ] = useLazyQuery(
     GET_CONTENT,
     {
-      variables: { owner, repo_name, oid }
+      variables: { owner, repo_name, oid: state.oid }
     },
-    [oid]
+    [state.oid]
   );
 
   // Callback for the folder tree to report new files loading
   function onClick(obj) {
-    setOid(obj.oid);
+    setState({ oid: obj.oid, name: obj.name });
     getContent();
   }
 
@@ -48,6 +48,7 @@ export const Viewer = ({ owner, repo_name, path }) => {
       />
       <Content
         loading={contentLoading}
+        name={state.name || "README.md"}
         text={contentData?.repo.content?.text || data?.repo.readme?.text}
       />
     </div>

@@ -1,16 +1,27 @@
 import marked from "marked";
 import highlightjs from "highlightjs";
 
-const SYMBOL = "///?";
-const LANG = {
-  // Does the line begin with a comment?
-  commentMatcher: RegExp(`^\\s*${SYMBOL}\\s?`),
-  // Ignore [hashbangs](http://en.wikipedia.org/wiki/Shebang_%28Unix%29) and interpolations...
-  commentFilter: /(^#![/]|^\s*#\{)/
+import languages from "../resources/languages";
+
+const getMatchers = lang => {
+  if (Object.keys(languages).indexOf(lang) === -1) {
+    console.error(`Could not find matchers for lang: ${lang}`);
+    return false;
+  }
+  let langInfo = languages[lang];
+
+  return {
+    commentMatcher: RegExp(`^\\s*${langInfo.symbol}\\s?`),
+    commentFilter: /(^#![/]|^\s*#\{)/
+  };
 };
 
-export const parse = (content, lang = null) => {
+export const parse = (content, filename) => {
   let sections = [];
+
+  if (!content) {
+    return sections;
+  }
 
   let hasCode = "";
   let docsText = "";
@@ -21,8 +32,13 @@ export const parse = (content, lang = null) => {
     hasCode = docsText = codeText = "";
   }
 
-  if (lang == "markdown") {
-    docsText = content;
+  let ext = "." + filename.split(".").pop();
+
+  let matchers = getMatchers(ext);
+
+  // If we don't know what this is, just show the file without attempting to annotate it!
+  if (!matchers) {
+    codeText = content;
     save();
     return sections;
   }
@@ -30,12 +46,15 @@ export const parse = (content, lang = null) => {
   let lines = content.split("\n");
 
   lines.forEach(line => {
-    if (line.match(LANG.commentMatcher) && !line.match(LANG.commentFilter)) {
+    if (
+      line.match(matchers.commentMatcher) &&
+      !line.match(matchers.commentFilter)
+    ) {
       if (hasCode) {
         save();
       }
 
-      docsText += (line = line.replace(LANG.commentMatcher, "")) + "\n";
+      docsText += (line = line.replace(matchers.commentMatcher, "")) + "\n";
       if (/^(---+|===!)$/.test(line)) {
         save();
       }
