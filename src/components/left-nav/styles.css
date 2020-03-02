@@ -1,0 +1,30 @@
+.expandable {
+  position: relative;
+  width: 10px;
+  height: 10px;
+}
+
+.expandable:before,.expandable:after {
+  content: "";
+  position: absolute;
+  background-color: black;
+  transition: transform 0.25s cubic-bezier(0.7, 0.3, 0.3, 0.7);
+}
+
+.expandable:before {
+  height: 2px;
+  width: 100%;
+  top: 4px;
+  left: 0;
+}
+
+.expandable:after {
+  height:100%;
+  width:2px;
+  top: 0;
+  left: 4px;
+}
+
+.expandable.expanded:after {
+  transform: rotate(90deg);
+}

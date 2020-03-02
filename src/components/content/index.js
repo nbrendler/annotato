@@ -1,19 +1,20 @@
 import { h } from "preact";
-import { useMemo } from "preact/hooks";
+import { useMemo, useContext } from "preact/hooks";
 
 import { parse, format } from "../../lib/lp.js";
+import { GithubContext } from "../gh-context";
 import styles from "./styles";
 
-const Content = ({ name, text, loading }) => {
+const Content = () => {
+  const {
+    data: { name, content }
+  } = useContext(GithubContext);
   const memoized = useMemo(() => {
     let sections = [];
 
-    sections = format(parse(text, name));
+    sections = format(parse(content, name));
     return sections;
-  }, [text, name]);
-
-  // TODO: render a loading image
-  if (loading) return "loading!";
+  }, [content, name]);
 
   let sections = memoized.reduce((acc, section) => {
     acc.push(<p className={styles.sectionItem} innerHTML={section.docsHtml} />);

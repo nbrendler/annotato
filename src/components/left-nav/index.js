@@ -1,68 +1,59 @@
 import { h } from "preact";
-import { gql, useLazyQuery } from "@apollo/client";
+import { useState, useCallback, useContext } from "preact/hooks";
 
-import style from "./style.css";
+import { GithubContext } from "../gh-context";
+import styles from "./styles";
 
-export const Tree = ({ owner, repo_name, root, onItemClick, item }) => {
-  let [getSubtree, { loading, data }] = useLazyQuery(GET_TREE, {
-    variables: {
-      oid: item?.oid,
-      owner,
-      repo_name
-    }
-  });
+const getItems = entries => {
+  return entries && entries.map && entries.map(i => <TreeNode item={i} />);
+};
 
-  if (loading) return <span>loading</span>;
+const TreeNode = ({ item }) => {
+  const [expanded, setExpanded] = useState(false);
+  const { fetchSubtree, fetchContent, data } = useContext(GithubContext);
+  const nodeData = data[item.oid];
+  const onClick = useCallback(
+    e => {
+      e.stopPropagation();
+      if (item.type === "tree") {
+        if (expanded) {
+          setExpanded(false);
+        } else {
+          setExpanded(true);
+          fetchSubtree(item);
+        }
+      } else {
+        fetchContent(item);
+      }
+    },
+    [item, fetchSubtree, fetchContent, expanded, setExpanded]
+  );
+  // TODO: have to consider the whole path, names will conflict
+  const highlighted = data.name === item.name ? "bg-blue-200" : "";
 
-  data = data ?? root;
-
-  const onClick = item => e => {
-    e.stopPropagation();
-    if (item.type === "tree") {
-      getSubtree();
-    } else {
-      onItemClick(item);
-    }
-  };
-
-  let children =
-    data &&
-    data.repo.items.entries.map(i => {
-      return (
-        <Tree
-          owner={owner}
-          repo_name={repo_name}
-          item={i}
-          onItemClick={onItemClick}
-        />
-      );
-    });
-
-  return root ? (
-    <ul>{children}</ul>
-  ) : (
-    <li className={style.listItem} onClick={onClick(item)}>
-      {item?.name}
-      <ul>{children}</ul>
-    </li>
+  // TODO: Maybe this should be split into smaller components, the classes are
+  // getting wild
+  return (
+    <div className="flex" onClick={onClick}>
+      <div
+        className={`mt-2 ${item.type === "tree" ? styles.expandable : ""} ${
+          expanded ? styles.expanded : ""
+        }`}
+      />
+      <li className={`${highlighted} pl-1 select-none`}>
+        {item?.name}
+        <ul className={expanded ? "" : "hidden"}>{getItems(nodeData)}</ul>
+      </li>
+    </div>
   );
 };
 
-const GET_TREE = gql`
-  query RepoItems($owner: String!, $repo_name: String!, $oid: GitObjectID!) {
-    repo: repository(name: $repo_name, owner: $owner) {
-      id
-      items: object(oid: $oid) {
-        oid
-        ... on Tree {
-          entries {
-            name
-            oid
-            type
-          }
-        }
-      }
-    }
-  }
-`;
-export default Tree;
+export const TreeRoot = () => {
+  const {
+    data: { root }
+  } = useContext(GithubContext);
+
+  return <ul>{getItems(root)}</ul>;
+};
+
+export default TreeRoot;
