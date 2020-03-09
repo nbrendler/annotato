@@ -1,7 +1,11 @@
+@width: 10px;
+@height: 10px;
+@bar-size: 2px;
+
 .expandable {
   position: relative;
-  width: 10px;
-  height: 10px;
+  width: @width;
+  height: @height;
 }
 
 .expandable:before,.expandable:after {
@@ -12,17 +16,17 @@
 }
 
 .expandable:before {
-  height: 2px;
+  height: @bar-size;
   width: 100%;
-  top: 4px;
+  top: (@height - @bar-size) / 2;
   left: 0;
 }
 
 .expandable:after {
   height:100%;
-  width:2px;
+  width:@bar-size;
   top: 0;
-  left: 4px;
+  left: (@height - @bar-size) / 2;
 }
 
 .expandable.expanded:after {
