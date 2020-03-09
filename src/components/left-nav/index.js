@@ -34,7 +34,7 @@ const TreeNode = ({ item }) => {
   // TODO: Maybe this should be split into smaller components, the classes are
   // getting wild
   return (
-    <div className="flex" onClick={onClick}>
+    <div className="flex pr-4" onClick={onClick}>
       <div
         className={`mt-2 ${item.type === "tree" ? styles.expandable : ""} ${
           expanded ? styles.expanded : ""
