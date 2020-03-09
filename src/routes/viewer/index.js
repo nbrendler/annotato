@@ -1,6 +1,5 @@
 import { h } from "preact";
 
-import style from "./style.css";
 import LeftNav from "../../components/left-nav";
 import Content from "../../components/content";
 import GithubStore from "../../components/gh-context";
