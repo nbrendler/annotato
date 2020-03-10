@@ -30,7 +30,11 @@ const Content = () => {
     return acc;
   }, []);
 
-  return <div className={styles.container}>{sections}</div>;
+  return (
+    <div className="markdown w-full flex flex-wrap items-stretch">
+      {sections}
+    </div>
+  );
 };
 
 export default Content;
