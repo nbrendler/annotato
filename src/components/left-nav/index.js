@@ -53,7 +53,7 @@ export const TreeRoot = () => {
     data: { root }
   } = useContext(GithubContext);
 
-  return <ul className="border-r p-4">{getItems(root)}</ul>;
+  return <ul className="border-r p-4 text-gray-700">{getItems(root)}</ul>;
 };
 
 export default TreeRoot;

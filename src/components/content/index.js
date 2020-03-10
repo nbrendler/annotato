@@ -3,7 +3,6 @@ import { useMemo, useContext } from "preact/hooks";
 
 import { parse, format } from "../../lib/lp.js";
 import { GithubContext } from "../gh-context";
-import styles from "./styles";
 
 const Content = () => {
   const {
@@ -17,13 +16,13 @@ const Content = () => {
   }, [content, name]);
 
   let sections = memoized.reduce((acc, section) => {
-    acc.push(<p className={styles.sectionItem} innerHTML={section.docsHtml} />);
+    acc.push(<p className="" innerHTML={section.docsHtml} />);
 
     // Note: hljs gives the background color
     // docco skips this and just colors the body and
     // adds an absolutely-positioned white rectangle
     acc.push(
-      <pre className={`hljs ${styles.sectionItem}`}>
+      <pre className={`hljs`}>
         <code innerHTML={section.codeHtml} />
       </pre>
     );
