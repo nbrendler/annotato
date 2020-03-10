@@ -7,7 +7,7 @@ import GithubStore from "../../components/gh-context";
 export const Viewer = props => {
 	return (
 		<GithubStore {...props}>
-			<div class="px-2 py-4 flex">
+			<div class="flex flex-1">
 				<LeftNav />
 				<Content />
 			</div>

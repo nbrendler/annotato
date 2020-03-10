@@ -183,6 +183,13 @@
     @apply mt-6;
   }
 
+  > p {
+    @apply pl-4;
+    &:first-child {
+      @apply pt-4;
+    }
+  }
+
   > ul:not(.list-none) {
     @apply pl-0 list-none;
     li {
@@ -234,7 +241,7 @@
   }
 
   > table {
-    @apply w-full text-left table-collapse;
+    @apply w-full text-left border-collapse;
     th {
       @apply text-sm font-semibold text-gray-700 p-2 bg-gray-100;
     }

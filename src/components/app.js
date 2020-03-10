@@ -18,10 +18,7 @@ export default class App extends Component {
 
   render() {
     return (
-      <div
-        id="app"
-        className="w-full max-w-screen-xl relative mx-auto flex flex-col"
-      >
+      <div id="app" className="w-full min-h-screen relative flex flex-col">
         <Header />
         <Router onChange={this.handleRoute}>
           <Home path="/" />
