@@ -6,5 +6,9 @@ module.exports = (config, env, helpers) => {
     // Add tailwind css at the top.
     plugins.unshift(require("tailwindcss"));
   });
+  config.devServer.historyApiFallback = {
+    ...config.devServer.historyApiFallback,
+    disableDotRule: true
+  };
   return config;
 };

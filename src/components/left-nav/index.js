@@ -1,17 +1,30 @@
 import { h } from "preact";
-import { useState, useCallback, useContext } from "preact/hooks";
+import { useState, useCallback, useContext, useEffect } from "preact/hooks";
 
 import { GithubContext } from "../gh-context";
 import styles from "./styles";
 
-const getItems = entries => {
-  return entries && entries.map && entries.map(i => <TreeNode item={i} />);
+const getItems = (entries, path) => {
+  return (
+    entries &&
+    entries.map &&
+    entries.map(i => <TreeNode item={i} path={path.concat([i.name])} />)
+  );
 };
 
-const TreeNode = ({ item }) => {
+const TreeNode = ({ item, path }) => {
   const [expanded, setExpanded] = useState(false);
   const { fetchSubtree, fetchContent, data } = useContext(GithubContext);
   const nodeData = data[item.oid];
+
+  // If there's data on the first render, expand the tree (for deep links)
+  useEffect(() => {
+    // if node data becomes available, expand the tree.
+    if (nodeData) {
+      setExpanded(true);
+    }
+  }, [nodeData]);
+
   const onClick = useCallback(
     e => {
       e.stopPropagation();
@@ -23,13 +36,12 @@ const TreeNode = ({ item }) => {
           fetchSubtree(item);
         }
       } else {
-        fetchContent(item);
+        fetchContent(item, path);
       }
     },
-    [item, fetchSubtree, fetchContent, expanded, setExpanded]
+    [item, fetchSubtree, fetchContent, path, expanded, setExpanded]
   );
-  // TODO: have to consider the whole path, names will conflict
-  const highlighted = data.name === item.name ? "bg-blue-200" : "";
+  const highlighted = data.oid === item.oid ? "bg-blue-200" : "";
 
   // TODO: Maybe this should be split into smaller components, the classes are
   // getting wild
@@ -43,9 +55,9 @@ const TreeNode = ({ item }) => {
           expanded ? styles.expanded : ""
         }`}
       />
-      <li className={`${highlighted} pl-1 select-none`}>
-        {item?.name}
-        <ul className={expanded ? "" : "hidden"}>{getItems(nodeData)}</ul>
+      <li className="pl-1 select-none">
+        <span className={highlighted}>{item?.name}</span>
+        <ul className={expanded ? "" : "hidden"}>{getItems(nodeData, path)}</ul>
       </li>
     </div>
   );
@@ -56,7 +68,7 @@ export const TreeRoot = () => {
     data: { root }
   } = useContext(GithubContext);
 
-  return <ul className="border-r text-gray-700">{getItems(root)}</ul>;
+  return <ul className="border-r text-gray-700">{getItems(root, [])}</ul>;
 };
 
 export default TreeRoot;

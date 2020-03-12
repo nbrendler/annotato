@@ -30,7 +30,7 @@ const httpLink = new HttpLink({ uri: GITHUB_API });
 
 const cacheFn = o => {
   if (["TreeEntry", "Tree", "Blob"].indexOf(o.__typename) > -1) {
-    return o.oid;
+    return `${o.oid}-${o.__typename}`;
   }
   if (o.__typename === "Repository") {
     return o.id;

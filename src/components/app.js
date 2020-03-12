@@ -22,7 +22,7 @@ export default class App extends Component {
         <Header />
         <Router onChange={this.handleRoute}>
           <Home path="/" />
-          <Viewer path="/v/:owner/:repo_name/:path?" />
+          <Viewer path="/github.com/:owner/:repo_name/:type?/:gh_ref?/:gh_path*" />
         </Router>
       </div>
     );
