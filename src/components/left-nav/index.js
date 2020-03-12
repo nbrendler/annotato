@@ -34,7 +34,10 @@ const TreeNode = ({ item }) => {
   // TODO: Maybe this should be split into smaller components, the classes are
   // getting wild
   return (
-    <div className="flex pr-4" onClick={onClick}>
+    <div
+      className={`${highlighted} flex px-4 py-1 hover:text-blue-600 cursor-pointer`}
+      onClick={onClick}
+    >
       <div
         className={`mt-2 ${item.type === "tree" ? styles.expandable : ""} ${
           expanded ? styles.expanded : ""
@@ -53,7 +56,7 @@ export const TreeRoot = () => {
     data: { root }
   } = useContext(GithubContext);
 
-  return <ul className="border-r p-4 text-gray-700">{getItems(root)}</ul>;
+  return <ul className="border-r text-gray-700">{getItems(root)}</ul>;
 };
 
 export default TreeRoot;

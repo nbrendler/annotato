@@ -86,6 +86,10 @@
     font-weight: 400;
   }
 
+  > p code {
+    @apply whitespace-pre-wrap;
+  }
+
   > p strong code,
   > ul li strong code,
   > ol li strong code {
@@ -94,6 +98,7 @@
 
   > pre,
   pre& {
+    @apply text-xs;
     @apply whitespace-pre-wrap;
     @apply w-2/3;
     @apply font-mono;
@@ -112,7 +117,8 @@
   }
 
   > h1,
-  h1& {
+  h1&,
+  > p h1 {
     @apply mb-1;
     @apply leading-none;
     @apply text-gray-900;
@@ -121,7 +127,8 @@
   }
 
   > h2,
-  h2& {
+  h2&,
+  > p h2 {
     @apply mt-16;
     @apply mb-4;
     @apply text-gray-900;
@@ -130,12 +137,14 @@
     @apply text-2xl;
   }
 
-  > h2 + h3 {
+  > h2 + h3,
+  > p h2 + h3 {
     @apply mt-6;
   }
 
   > h3,
-  h3& {
+  h3&,
+  > p h3 {
     @apply mt-12 -mb-3;
     @apply text-gray-900;
     @apply leading-tight;
@@ -144,7 +153,8 @@
   }
 
   > h4,
-  h4& {
+  h4&,
+  > p h4 {
     @apply mt-12;
     @apply mb-0;
     @apply text-gray-900;
@@ -153,23 +163,30 @@
     @apply text-lg;
   }
 
-  > h1 + p {
+  > h1 + p,
+  > p h1 + p {
     @apply mt-8;
   }
 
   > h1 > code,
   > h2 > code,
   > h3 > code,
-  > h4 > code {
+  > h4 > code,
+  > p h1 > code,
+  > p h2 > code,
+  > p h3 > code,
+  > p h4 > code {
     @apply text-purple-600;
     @apply font-mono;
   }
 
-  > h3 > code {
+  > h3 > code,
+  > p > h3 > code {
     @apply text-lg px-1 bg-gray-100;
   }
 
-  > h4 > code {
+  > h4 > code,
+  > p > h4 > code {
     @apply text-base px-1 bg-gray-100;
   }
 
@@ -228,7 +245,6 @@
   > ul li pre,
   > ol li pre {
     @apply flex p-0 bg-gray-800;
-    @apply text-sm leading-normal;
   }
 
   > pre code,
@@ -251,6 +267,14 @@
       &:first-child {
         @apply border-gray-300;
       }
+    }
+  }
+}
+
+@screen md {
+  .markdown {
+    > pre,
+    pre& {
     }
   }
 }
