@@ -178,7 +178,7 @@ const GithubStore = ({ owner, repo_name, type, gh_path, gh_ref, children }) => {
       dispatch({ type: "SET_CURRENT", item });
       fetchContent({ variables: { owner, repo_name, oid: item.oid } });
 
-      let newPath = ["github.com", owner, repo_name, "blob", gh_ref]
+      let newPath = ["github.com", owner, repo_name, "blob", gh_ref || "HEAD"]
         .concat(paths)
         .map(encodeURIComponent)
         .join("/");
