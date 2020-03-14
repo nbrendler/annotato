@@ -2,9 +2,9 @@ import { h, Component } from "preact";
 import { Router } from "preact-router";
 
 import Header from "./header";
+import Redirect from "./redirect";
 
 // Code-splitting is automated for routes
-import Home from "../routes/home";
 import Viewer from "../routes/viewer";
 
 export default class App extends Component {
@@ -21,8 +21,8 @@ export default class App extends Component {
       <div id="app" className="w-full min-h-screen relative flex flex-col">
         <Header />
         <Router onChange={this.handleRoute}>
-          <Home path="/" />
           <Viewer path="/github.com/:owner/:repo_name/:type?/:gh_ref?/:gh_path*" />
+          <Redirect path="/" to="/github.com/nbrendler/annotatively" />
         </Router>
       </div>
     );
