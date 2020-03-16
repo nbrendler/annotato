@@ -5,7 +5,7 @@ import GithubButton from "../gh-button";
 
 const Header = () => (
   <header class="flex justify-between items-center p-4 border-b">
-    <h1 className="text-black font-bold">Code Is Book Now</h1>
+    <h1 className="text-black font-bold">Annotato</h1>
     <nav>
       <GithubButton />
       <Link className="py-2 px-4" activeClassName="text-purple" href="/">

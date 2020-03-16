@@ -210,7 +210,6 @@ const GithubStore = ({ owner, repo_name, type, gh_path, gh_ref, children }) => {
           .map(encodeURIComponent)
           .join("/");
         route(`/${newPath}`);
-        console.log("hi", newPath);
       } else {
         fetchSubtree({
           variables: { owner, repo_name, oid: item.oid }
