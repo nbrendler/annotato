@@ -1,6 +1,6 @@
 import { h, createContext } from "preact";
 import { route } from "preact-router";
-import { useReducer, useCallback, useMemo } from "preact/hooks";
+import { useEffect, useReducer, useCallback, useMemo } from "preact/hooks";
 import { gql, useQuery, useLazyQuery } from "@apollo/client";
 
 const getParents = path => {
@@ -28,7 +28,8 @@ const initialState = {
     root: null,
     content: null,
     name: null
-  }
+  },
+  currentPath: null
 };
 
 const reducer = (state, action) => {
@@ -37,6 +38,8 @@ const reducer = (state, action) => {
     case "RECV_ROOT":
       // TODO: probably need to guard against non-existent repos
       newState.data.root = action.data.repo.root.entries;
+
+      newState.data.readme = action.data.repo.readme;
 
       // Add all of the level information (when given a deep link) to the state.
       // For root queries (just owner and repo name) this is a noop.
@@ -66,13 +69,6 @@ const reducer = (state, action) => {
         const treeData = action.data.repo.tree;
         newState.data.oid = treeData.oid;
         newState.data[treeData.oid] = treeData.entries;
-
-        // If this is the root tree
-        if (treeData.oid === action.data.repo.root.oid) {
-          newState.data.content = action.data.repo.readme?.text;
-          // TODO: determine this automatically
-          newState.data.name = "README.md";
-        }
       } else {
         console.error("unreachable!");
       }
@@ -80,13 +76,14 @@ const reducer = (state, action) => {
       return newState;
     case "RECV_CONTENT":
       newState.data.content = action.data.repo.content.text;
+      newState.data.oid = action.data.repo.content.oid;
+      newState.data.name = state.currentPath.split("/").pop();
       return newState;
     case "RECV_SUBTREE":
       newState.data[action.oid] = action.data;
       return newState;
-    case "SET_CURRENT":
-      newState.data.name = action.item.name;
-      newState.data.oid = action.item.oid;
+    case "SET_CURRENT_PATH":
+      newState.currentPath = action.path;
       return newState;
   }
   return state;
@@ -165,6 +162,7 @@ const GithubStore = ({ owner, repo_name, type, gh_path, gh_ref, children }) => {
   );
 
   // TODO: loading states
+  //
 
   const [fetchContent] = useLazyQuery(GET_CONTENT, {
     onCompleted: data => {
@@ -172,24 +170,7 @@ const GithubStore = ({ owner, repo_name, type, gh_path, gh_ref, children }) => {
     }
   });
 
-  // TODO: figure out better names here
-  const getContent = useCallback(
-    (item, paths) => {
-      dispatch({ type: "SET_CURRENT", item });
-      fetchContent({ variables: { owner, repo_name, oid: item.oid } });
-
-      let newPath = ["github.com", owner, repo_name, "blob", gh_ref || "HEAD"]
-        .concat(paths)
-        .map(encodeURIComponent)
-        .join("/");
-      route(`/${newPath}`);
-    },
-    [fetchContent, owner, repo_name, gh_ref]
-  );
-
-  // TODO: handle error and loading
-
-  let [fetchSubtree] = useLazyQuery(GET_TREE, {
+  const [fetchSubtree] = useLazyQuery(GET_TREE, {
     onCompleted: data => {
       dispatch({
         type: "RECV_SUBTREE",
@@ -199,21 +180,52 @@ const GithubStore = ({ owner, repo_name, type, gh_path, gh_ref, children }) => {
     }
   });
 
-  const getSubtree = useCallback(
-    item => {
-      fetchSubtree({
-        variables: { owner, repo_name, oid: item.oid }
+  useEffect(() => {
+    if (state.currentPath === null) {
+      // set initial values
+      dispatch({
+        type: "SET_CURRENT_PATH",
+        path: gh_path
       });
+      return;
+    }
+    if (state.currentPath !== gh_path) {
+      if (type === "blob") {
+        fetchContent({
+          variables: { owner, repo_name, path: `${gh_ref}:${gh_path}` }
+        });
+      }
+      dispatch({
+        type: "SET_CURRENT_PATH",
+        path: gh_path
+      });
+    }
+  }, [variables, dispatch, gh_ref, gh_path]);
+
+  const getData = useCallback(
+    (item, paths) => {
+      if (item.type === "blob") {
+        let newPath = ["github.com", owner, repo_name, "blob", gh_ref || "HEAD"]
+          .concat(paths)
+          .map(encodeURIComponent)
+          .join("/");
+        route(`/${newPath}`);
+        console.log("hi", newPath);
+      } else {
+        fetchSubtree({
+          variables: { owner, repo_name, oid: item.oid }
+        });
+      }
     },
-    [fetchSubtree, owner, repo_name]
+    [dispatch, gh_ref]
   );
 
   return (
     <GithubContext.Provider
       value={{
         data: state.data,
-        fetchContent: getContent,
-        fetchSubtree: getSubtree
+        path: state.currentPath,
+        getData
       }}
     >
       {children}
@@ -279,7 +291,6 @@ const addLevels = levels => {
 };
 
 const getQueryVars = (owner, repo_name, type, gh_ref, gh_path) => {
-  console.log(owner, repo_name, type, gh_ref, gh_path);
   let rootTree = `${gh_ref}:`;
   let initialNode = `${gh_ref}:${gh_path}`;
 
@@ -366,10 +377,10 @@ const INITIAL_QUERY = gql`
 `;
 
 const GET_CONTENT = gql`
-  query Content($owner: String!, $repo_name: String!, $oid: GitObjectID!) {
+  query Content($owner: String!, $repo_name: String!, $path: String!) {
     repo: repository(name: $repo_name, owner: $owner) {
       id
-      content: object(oid: $oid) {
+      content: object(expression: $path) {
         oid
         ... on Blob {
           text

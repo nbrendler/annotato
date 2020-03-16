@@ -5,9 +5,16 @@ import { parse, format } from "../../lib/lp.js";
 import { GithubContext } from "../gh-context";
 
 const Content = () => {
-  const {
-    data: { name, content }
-  } = useContext(GithubContext);
+  const { data, path } = useContext(GithubContext);
+
+  let content = data.content;
+  let name = data.name;
+
+  // special case for the root
+  if (path === "") {
+    content = data.readme?.text;
+    name = "README.md";
+  }
   const memoized = useMemo(() => {
     let sections = [];
 

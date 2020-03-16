@@ -14,7 +14,7 @@ const getItems = (entries, path) => {
 
 const TreeNode = ({ item, path }) => {
   const [expanded, setExpanded] = useState(false);
-  const { fetchSubtree, fetchContent, data } = useContext(GithubContext);
+  const { getData, data } = useContext(GithubContext);
   const nodeData = data[item.oid];
 
   // If there's data on the first render, expand the tree (for deep links)
@@ -33,13 +33,13 @@ const TreeNode = ({ item, path }) => {
           setExpanded(false);
         } else {
           setExpanded(true);
-          fetchSubtree(item);
+          getData(item, path);
         }
       } else {
-        fetchContent(item, path);
+        getData(item, path);
       }
     },
-    [item, fetchSubtree, fetchContent, path, expanded, setExpanded]
+    [item, getData, path, expanded, setExpanded]
   );
   const highlighted = data.oid === item.oid ? "bg-blue-200" : "";
 
