@@ -22,7 +22,7 @@ export default class App extends Component {
         <Header />
         <Router onChange={this.handleRoute}>
           <Viewer path="/github.com/:owner/:repo_name/:type?/:gh_ref?/:gh_path*" />
-          <Redirect path="/" to="/github.com/nbrendler/annotatively" />
+          <Redirect path="/" to="/github.com/nbrendler/annotato" />
         </Router>
       </div>
     );
