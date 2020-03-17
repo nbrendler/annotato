@@ -3,9 +3,10 @@ import { useMemo, useContext } from "preact/hooks";
 
 import { parse, format } from "../../lib/lp.js";
 import { GithubContext } from "../gh-context";
+import Loading from "../loading";
 
 const Content = () => {
-  const { data, path } = useContext(GithubContext);
+  const { data, path, contentLoading, rootLoading } = useContext(GithubContext);
 
   let content = data.content;
   let name = data.name;
@@ -21,6 +22,10 @@ const Content = () => {
     sections = format(parse(content, name));
     return sections;
   }, [content, name]);
+
+  if (rootLoading || contentLoading) {
+    return <Loading type="content" />;
+  }
 
   let sections = memoized.reduce((acc, section) => {
     acc.push(<p className="" innerHTML={section.docsHtml} />);

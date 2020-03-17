@@ -2,6 +2,7 @@ import { h } from "preact";
 import { useState, useCallback, useContext, useEffect } from "preact/hooks";
 
 import { GithubContext } from "../gh-context";
+import Loading from "../loading";
 import styles from "./styles";
 
 const getItems = (entries, path) => {
@@ -13,15 +14,18 @@ const getItems = (entries, path) => {
 };
 
 const TreeNode = ({ item, path }) => {
+  // There's probably way to use loading state given by useLazyQuery instead of
+  // this, but this works
+  const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const { getData, data } = useContext(GithubContext);
   const nodeData = data[item.oid];
 
   // If there's data on the first render, expand the tree (for deep links)
   useEffect(() => {
-    // if node data becomes available, expand the tree.
     if (nodeData) {
       setExpanded(true);
+      setLoading(false);
     }
   }, [nodeData]);
 
@@ -33,7 +37,10 @@ const TreeNode = ({ item, path }) => {
           setExpanded(false);
         } else {
           setExpanded(true);
-          getData(item, path);
+          if (!nodeData) {
+            setLoading(true);
+            getData(item, path);
+          }
         }
       } else {
         getData(item, path);
@@ -41,6 +48,7 @@ const TreeNode = ({ item, path }) => {
     },
     [item, getData, path, expanded, setExpanded]
   );
+
   const highlighted = data.oid === item.oid ? "bg-blue-200" : "";
 
   // TODO: Maybe this should be split into smaller components, the classes are
@@ -57,7 +65,13 @@ const TreeNode = ({ item, path }) => {
       />
       <li className="pl-1 select-none">
         <span className={highlighted}>{item?.name}</span>
-        <ul className={expanded ? "" : "hidden"}>{getItems(nodeData, path)}</ul>
+        {loading ? (
+          <Loading type="tree node" />
+        ) : (
+          <ul className={expanded ? "" : "hidden"}>
+            {getItems(nodeData, path)}
+          </ul>
+        )}
       </li>
     </div>
   );
@@ -65,8 +79,13 @@ const TreeNode = ({ item, path }) => {
 
 export const TreeRoot = () => {
   const {
-    data: { root }
+    data: { root },
+    rootLoading
   } = useContext(GithubContext);
+
+  if (rootLoading) {
+    return <Loading type="tree" />;
+  }
 
   return <ul className="border-r text-gray-700">{getItems(root, [])}</ul>;
 };

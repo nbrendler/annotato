@@ -147,7 +147,7 @@ const GithubStore = ({ owner, repo_name, type, gh_path, gh_ref, children }) => {
   // I think it makes more sense to use the callback-style onCompleted,
   // onError, etc. here because nothing can really benefit from the declarative
   // state.
-  useQuery(
+  const { loading: rootLoading } = useQuery(
     INITIAL_QUERY,
     {
       variables,
@@ -164,11 +164,14 @@ const GithubStore = ({ owner, repo_name, type, gh_path, gh_ref, children }) => {
   // TODO: loading states
   //
 
-  const [fetchContent] = useLazyQuery(GET_CONTENT, {
-    onCompleted: data => {
-      dispatch({ type: "RECV_CONTENT", data });
+  const [fetchContent, { loading: contentLoading }] = useLazyQuery(
+    GET_CONTENT,
+    {
+      onCompleted: data => {
+        dispatch({ type: "RECV_CONTENT", data });
+      }
     }
-  });
+  );
 
   const [fetchSubtree] = useLazyQuery(GET_TREE, {
     onCompleted: data => {
@@ -211,9 +214,10 @@ const GithubStore = ({ owner, repo_name, type, gh_path, gh_ref, children }) => {
           .join("/");
         route(`/${newPath}`);
       } else {
-        fetchSubtree({
+        const { loading } = fetchSubtree({
           variables: { owner, repo_name, oid: item.oid }
         });
+        return loading;
       }
     },
     [dispatch, gh_ref]
@@ -224,6 +228,8 @@ const GithubStore = ({ owner, repo_name, type, gh_path, gh_ref, children }) => {
       value={{
         data: state.data,
         path: state.currentPath,
+        contentLoading,
+        rootLoading,
         getData
       }}
     >
