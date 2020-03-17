@@ -23,6 +23,12 @@ export default class App extends Component {
         <Router onChange={this.handleRoute}>
           <Viewer path="/github.com/:owner/:repo_name/:type?/:gh_ref?/:gh_path*" />
           <Redirect path="/" to="/github.com/nbrendler/annotato" />
+
+          <Viewer
+            path="/gql-error"
+            owner="nbrendler"
+            repo_name="doesnotexist"
+          />
         </Router>
       </div>
     );

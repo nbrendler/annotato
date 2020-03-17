@@ -78,3 +78,16 @@ npm run test
 ```
 
 For detailed explanation on how things work, checkout the [CLI Readme](https://github.com/developit/preact-cli/blob/master/README.md).
+
+### Failure Injections
+
+There are a few failure injections that can be used in dev to test error states
+manually.
+
+| Injection Name  | Purpose                                             |
+| --------------  | --------------------------------------------------- |
+| `gql-error`     | Causes the root GraphQL query to fail.              |
+| `content-error` | Causes the next content query to fail.              |
+| `content-null`  | Causes the next content query to return null.       |
+| `subtree-error` | Causes the next subtree query to fail.              |
+| `empty-folder`  | Causes the next subtree query to return no entries. |

@@ -4,9 +4,17 @@ import { useMemo, useContext } from "preact/hooks";
 import { parse, format } from "../../lib/lp.js";
 import { GithubContext } from "../gh-context";
 import Loading from "../loading";
+import Error from "../error";
 
 const Content = () => {
-  const { data, path, contentLoading, rootLoading } = useContext(GithubContext);
+  const {
+    data,
+    path,
+    contentLoading,
+    contentError,
+    rootLoading,
+    rootError
+  } = useContext(GithubContext);
 
   let content = data.content;
   let name = data.name;
@@ -25,6 +33,10 @@ const Content = () => {
 
   if (rootLoading || contentLoading) {
     return <Loading type="content" />;
+  }
+
+  if (rootError || contentError) {
+    return <Error message={`whoops! ${rootError || contentError}`} />;
   }
 
   let sections = memoized.reduce((acc, section) => {

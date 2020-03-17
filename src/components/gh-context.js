@@ -3,6 +3,17 @@ import { route } from "preact-router";
 import { useEffect, useReducer, useCallback, useMemo } from "preact/hooks";
 import { gql, useQuery, useLazyQuery } from "@apollo/client";
 
+let inject = [];
+const initFailureInjections = value => {
+  inject.push(value);
+};
+
+const failureInjection = (name, callback) => {
+  if (process.env.NODE_ENV === "development" && inject.indexOf(name) > -1) {
+    callback();
+  }
+};
+
 const getParents = path => {
   let parts = path.split("/");
 
@@ -129,8 +140,20 @@ export const GithubContext = createContext();
  * Other considerations:
  * * Paths with trailing slashes should work the same as non-trailing slashes
  */
-const GithubStore = ({ owner, repo_name, type, gh_path, gh_ref, children }) => {
+const GithubStore = ({
+  owner,
+  repo_name,
+  type,
+  gh_path,
+  gh_ref,
+  children,
+  matches: { inject }
+}) => {
   const [state, dispatch] = useReducer(withLogging, initialState);
+
+  useEffect(() => {
+    initFailureInjections(inject);
+  }, []);
 
   let [variables, levelCount] = useMemo(
     () =>
@@ -144,34 +167,33 @@ const GithubStore = ({ owner, repo_name, type, gh_path, gh_ref, children }) => {
     [owner, repo_name]
   );
 
+  // force a gql server error by giving a non-existent repo
+  failureInjection("gql-error", () => {
+    variables.repo_name = "";
+  });
+
   // I think it makes more sense to use the callback-style onCompleted,
   // onError, etc. here because nothing can really benefit from the declarative
   // state.
-  const { loading: rootLoading } = useQuery(
+  const { loading: rootLoading, error: rootError } = useQuery(
     INITIAL_QUERY,
     {
       variables,
       onCompleted: data => {
         dispatch({ type: "RECV_ROOT", data, levelCount });
-      },
-      onError: err => {
-        dispatch({ type: "FETCH_ERROR", error: err });
       }
     },
     [variables]
   );
 
-  // TODO: loading states
-  //
-
-  const [fetchContent, { loading: contentLoading }] = useLazyQuery(
-    GET_CONTENT,
-    {
-      onCompleted: data => {
-        dispatch({ type: "RECV_CONTENT", data });
-      }
+  const [
+    fetchContent,
+    { loading: contentLoading, error: contentError }
+  ] = useLazyQuery(GET_CONTENT, {
+    onCompleted: data => {
+      dispatch({ type: "RECV_CONTENT", data });
     }
-  );
+  });
 
   const [fetchSubtree] = useLazyQuery(GET_TREE, {
     onCompleted: data => {
@@ -194,8 +216,20 @@ const GithubStore = ({ owner, repo_name, type, gh_path, gh_ref, children }) => {
     }
     if (state.currentPath !== gh_path) {
       if (type === "blob") {
+        const vars = { owner, repo_name, path: `${gh_ref}:${gh_path}` };
+
+        // this will cause the content fetch to fail
+        failureInjection("content-error", () => {
+          vars.repo_name = "";
+        });
+
+        // this will make content null in the GQL response, no error
+        failureInjection("content-null", () => {
+          vars.path = "doesnotexist";
+        });
+
         fetchContent({
-          variables: { owner, repo_name, path: `${gh_ref}:${gh_path}` }
+          variables: vars
         });
       }
       dispatch({
@@ -214,10 +248,18 @@ const GithubStore = ({ owner, repo_name, type, gh_path, gh_ref, children }) => {
           .join("/");
         route(`/${newPath}`);
       } else {
-        const { loading } = fetchSubtree({
-          variables: { owner, repo_name, oid: item.oid }
+        let vars = { owner, repo_name, oid: item.oid };
+
+        failureInjection("subtree-error", () => {
+          vars.repo_name = "";
         });
-        return loading;
+        failureInjection("empty-folder", () => {
+          vars.oid = "doesnotexist";
+        });
+
+        fetchSubtree({
+          variables: vars
+        });
       }
     },
     [dispatch, gh_ref]
@@ -228,7 +270,9 @@ const GithubStore = ({ owner, repo_name, type, gh_path, gh_ref, children }) => {
       value={{
         data: state.data,
         path: state.currentPath,
+        contentError,
         contentLoading,
+        rootError,
         rootLoading,
         getData
       }}

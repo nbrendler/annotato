@@ -80,11 +80,16 @@ const TreeNode = ({ item, path }) => {
 export const TreeRoot = () => {
   const {
     data: { root },
-    rootLoading
+    rootLoading,
+    rootError
   } = useContext(GithubContext);
 
   if (rootLoading) {
     return <Loading type="tree" />;
+  }
+
+  if (rootError) {
+    return null;
   }
 
   return <ul className="border-r text-gray-700">{getItems(root, [])}</ul>;
