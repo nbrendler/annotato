@@ -67,7 +67,11 @@ const Content = () => {
   }, []);
 
   return (
-    <div className="markdown w-full flex flex-col lg:flex-row lg:flex-wrap items-stretch">
+    <div
+      className={`markdown w-full flex flex-col lg:flex-row lg:flex-wrap items-stretch ${
+        anyDocs ? null : "no-docs"
+      } ${anyCode ? null : "no-code"}`}
+    >
       {sections}
     </div>
   );
