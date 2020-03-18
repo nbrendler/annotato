@@ -81,7 +81,7 @@
   }
 
   > pre {
-    @apply w-2/3;
+    @apply w-full;
     @apply font-mono;
     @apply flex p-0 bg-gray-800;
   }
@@ -152,7 +152,7 @@
 
   > p {
     @apply px-4;
-    @apply w-1/3;
+    @apply w-full;
     &:first-child {
       @apply pt-4;
     }
@@ -161,5 +161,16 @@
   // ul, ol
   ul:not(.list-none), ol {
     @apply list-disc pl-5 my-2;
+  }
+}
+
+@screen lg {
+  .markdown {
+    > p {
+      @apply w-1/3;
+    }
+    > pre {
+      @apply w-2/3;
+    }
   }
 }
