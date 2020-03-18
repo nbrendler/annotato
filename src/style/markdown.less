@@ -28,6 +28,13 @@
     @apply text-gray-800;
   }
 
+  blockquote{
+    @apply italic;
+    @apply text-gray-900;
+    @apply text-sm;
+  }
+
+  // p
   > p code,
   > ul li *:not(pre) code,
   > ul li > code,
@@ -56,8 +63,8 @@
   > ol li strong code {
     font-weight: 600;
   }
-  
 
+  // pre, code
   pre {
     word-wrap: normal;
     @apply text-xs;
@@ -76,14 +83,11 @@
   > pre {
     @apply w-2/3;
     @apply font-mono;
+    @apply flex p-0 bg-gray-800;
   }
 
-  blockquote{
-    @apply italic;
-    @apply text-gray-900;
-    @apply text-sm;
-  }
 
+  // h1, h2, h3, h4
   h1 {
     @apply mb-1;
     @apply leading-none;
@@ -128,6 +132,23 @@
     }
   }
 
+  // table
+  table {
+    @apply w-full text-left border-collapse my-2;
+    th {
+      @apply text-sm font-semibold text-gray-700 p-2 bg-gray-100;
+    }
+    td {
+      @apply p-2 border-t border-gray-200 text-sm;
+      code {
+        @apply bg-gray-100 px-1 font-mono text-xs text-purple-700 align-baseline;
+      }
+      &:first-child {
+        @apply border-gray-300;
+      }
+    }
+  }
+
 
   > p {
     @apply px-4;
@@ -168,54 +189,8 @@
     @apply list-disc pl-5 my-2;
   }
 
-  > :not(pre):not(h1):not(h2):not(h3):not(h4) > code,
-  > ul code,
-  > ol code {
-    @apply bg-gray-100;
-    @apply text-sm;
-    @apply leading-normal;
-  }
-
-  > pre,
-  pre&,
-  > ul li pre,
-  > ol li pre {
-    @apply flex p-0 bg-gray-800;
-  }
-
-  > pre code,
-  pre code&,
-  > ul li pre code,
-  > ol li pre code {
-    @apply p-4;
-  }
-
   > ul, 
   > ol {
     @apply list-disc;
-  }
-
-  table {
-    @apply w-full text-left border-collapse my-2;
-    th {
-      @apply text-sm font-semibold text-gray-700 p-2 bg-gray-100;
-    }
-    td {
-      @apply p-2 border-t border-gray-200 text-sm;
-      code {
-        @apply bg-gray-100 px-1 font-mono text-xs text-purple-700 align-baseline;
-      }
-      &:first-child {
-        @apply border-gray-300;
-      }
-    }
-  }
-}
-
-@screen md {
-  .markdown {
-    > pre,
-    pre& {
-    }
   }
 }
