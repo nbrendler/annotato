@@ -55,7 +55,7 @@ const TreeNode = ({ item, path }) => {
   // getting wild
   return (
     <div
-      className={`${highlighted} flex px-4 py-1 hover:text-blue-600 cursor-pointer`}
+      className={`${highlighted} flex px-4 py-1 hover:text-blue-600 transition ease-in-out duration-400 cursor-pointer`}
       onClick={onClick}
     >
       <div

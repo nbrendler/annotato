@@ -11,7 +11,7 @@
   }
 
   a {
-    @apply text-blue-500 underline font-medium;
+    @apply text-blue-500 underline font-medium transition ease-in-out duration-700;
     &:hover {
       @apply text-blue-700;
     }
@@ -76,7 +76,7 @@
       display: none;
     }
     code {
-      @apply p-4 leading-snug my-2 w-full;
+      @apply p-4 leading-snug my-2 w-full overflow-x-auto;
     }
   }
 
@@ -158,39 +158,8 @@
     }
   }
 
-  > ul:not(.list-none) {
-    @apply pl-0 list-disc;
-    li {
-      @apply relative pl-5;
-      &::before {
-        @apply absolute left-0 text-gray-400 inline-block mr-3;
-        content: "\2022";
-      }
-    }
-  }
-
-  > ol {
-    @apply list-disc;
-    counter-reset: item;
-    > li {
-      @apply relative pl-10;
-    }
-    > li::before {
-      @apply absolute top-0 left-0 mt-px;
-      @apply flex items-center justify-center;
-      @apply h-6 w-6 bg-gray-300 rounded-full;
-      @apply text-gray-700 text-xs font-bold;
-      content: counter(item);
-      counter-increment: item;
-    }
-  }
-
+  // ul, ol
   ul:not(.list-none), ol {
     @apply list-disc pl-5 my-2;
-  }
-
-  > ul, 
-  > ol {
-    @apply list-disc;
   }
 }

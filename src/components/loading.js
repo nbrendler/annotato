@@ -15,7 +15,7 @@ export const Loading = ({ type }) => {
     default:
       console.error("unreachable!");
   }
-  return <div>{message}</div>;
+  return <div class="flex pl-4 pt-4 transition ease-in-out duration-700 text-gray-600">{message}</div>;
 };
 
 export default Loading;

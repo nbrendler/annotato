@@ -10,7 +10,7 @@ export const Viewer = props => {
 
   if (!token) {
     return (
-      <div class="flex flex-1">
+      <div class="flex flex-1 items-center">
         <PleaseSignIn />
       </div>
     );
