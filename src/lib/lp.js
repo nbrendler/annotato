@@ -127,7 +127,7 @@ export const format = (sections, { owner, repo_name, gh_ref }) => {
   setRules(owner, repo_name, gh_ref);
   sections.forEach(s => {
     s.docsHtml = md.render(s.docsText);
-    s.codeHtml = highlightjs.highlight("bash", s.codeText).value;
+    s.codeHtml = highlightjs.highlightAuto(s.codeText).value;
   });
   return sections;
 };
