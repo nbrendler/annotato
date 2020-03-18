@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "annotately",
+  "name": "annotato",
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
@@ -40,7 +40,7 @@
     "apollo-link-context": "^1.0.19",
     "graphql": "^14.6.0",
     "highlightjs": "^9.16.2",
-    "marked": "^0.8.0",
+    "markdown-it": "^10.0.0",
     "netlify-auth-providers": "^1.0.0-alpha5",
     "preact": "^10.3.2",
     "preact-render-to-string": "^5.1.4",

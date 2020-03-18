@@ -270,6 +270,9 @@ const GithubStore = ({
       value={{
         data: state.data,
         path: state.currentPath,
+        owner,
+        repo_name,
+        gh_ref: gh_ref || "HEAD",
         contentError,
         contentLoading,
         rootError,

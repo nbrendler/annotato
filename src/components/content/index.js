@@ -10,6 +10,9 @@ const Content = () => {
   const {
     data,
     path,
+    owner,
+    repo_name,
+    gh_ref,
     contentLoading,
     contentError,
     rootLoading,
@@ -27,9 +30,9 @@ const Content = () => {
   const memoized = useMemo(() => {
     let sections = [];
 
-    sections = format(parse(content, name));
+    sections = format(parse(content, name), { owner, repo_name, gh_ref });
     return sections;
-  }, [content, name]);
+  }, [content, name, owner, repo_name, gh_ref]);
 
   if (rootLoading || contentLoading) {
     return <Loading type="content" />;
