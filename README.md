@@ -51,7 +51,7 @@ Here's a few examples of code that are written in this style.
     their docs, using [docco](https://github.com/jashkenas/docco/blob/master/docco.js).
 
 * The annotato source code! I recommend starting with the
-[data layer stuff](https://github.com/nbrendler/annotato/src/components/gh-context.js), which is the main meat of
+[data layer stuff](https://github.com/nbrendler/annotato/blob/master/src/components/gh-context.js), which is the main meat of
 this tool.
 
 Feel free to open an issue/PR to add other examples!
