@@ -162,6 +162,12 @@
   ul:not(.list-none), ol {
     @apply list-disc pl-5 my-2;
   }
+
+  &.no-code, &.no-docs {
+    > p, > pre {
+      @apply w-full;
+    }
+  }
 }
 
 @screen lg {
@@ -171,6 +177,9 @@
     }
     > pre {
       @apply w-2/3;
+    }
+    &.no-code > p {
+      @apply w-2/3 mx-auto;
     }
   }
 }
