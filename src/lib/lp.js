@@ -35,7 +35,7 @@ const setRules = (owner, repo, ref) => {
         const groups = githubItemRE.exec(href);
         tokens[idx].attrs[
           attrIndex
-        ][1] = `/github.com/${groups[2]}/${groups[3]}/${groups[4]}/${groups[5]}}`;
+        ][1] = `/github.com/${groups[2]}/${groups[3]}/${groups[4]}/${groups[5]}`;
       }
     }
     return defaultLinkRender(tokens, idx, options, env, self);
