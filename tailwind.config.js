@@ -17,7 +17,7 @@ module.exports = {
 				"Segoe UI Symbol",
 				"Noto Color Emoji"
 			],
-			mono: ["SFMono-Regular", "Menlo"]
+			mono: ["Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"]
 		}
 	},
 	variants: {},
