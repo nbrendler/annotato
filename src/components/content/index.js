@@ -13,14 +13,14 @@ const Content = () => {
     owner,
     repo_name,
     gh_ref,
+    error,
     contentLoading,
-    contentError,
-    rootLoading,
-    rootError
+    rootLoading
   } = useContext(GithubContext);
 
   let content = data.content;
   let name = data.name;
+  let contentError = error;
 
   // special case for the root
   if (path === "") {
@@ -31,6 +31,7 @@ const Content = () => {
     let sections = [];
 
     sections = format(parse(content, name), { owner, repo_name, gh_ref });
+
     // Check if there's any docs at all, if not we can just render code
     const anyDocs = sections.filter(s => s.docsHtml).length > 0;
 
@@ -44,8 +45,12 @@ const Content = () => {
     return <Loading type="content" />;
   }
 
-  if (rootError || contentError) {
-    return <Error message={`whoops! ${rootError || contentError}`} />;
+  if (!error && memoized.length === 0) {
+    contentError = { message: "Empty file" };
+  }
+
+  if (contentError) {
+    return <Error message={contentError.message} />;
   }
 
   let sections = memoized.reduce((acc, section) => {

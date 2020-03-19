@@ -40,13 +40,16 @@ const initialState = {
     content: null,
     name: null
   },
-  currentPath: null
+  currentPath: null,
+  error: null,
+  treeError: null
 };
 
 const reducer = (state, action) => {
   let newState = Object.assign({}, state);
   switch (action.type) {
     case "RECV_ROOT":
+      newState.error = null;
       // TODO: probably need to guard against non-existent repos
       newState.data.root = action.data.repo.root.entries;
 
@@ -60,8 +63,17 @@ const reducer = (state, action) => {
       }
 
       // Scenario: Rendering a link directly to a blob
-      if (action.data.repo.blob?.text) {
-        newState.data.content = action.data.repo.blob?.text;
+      const blob = action.data.repo.blob;
+      if (blob) {
+        if (blob.isBinary) {
+          newState.error = {
+            type: "content",
+            message: "Binary files can't be rendered."
+          };
+          return newState;
+        }
+        // text can be null if the file is empty
+        newState.data.content = blob.text || "";
         let parent = action.levelCount
           ? action.data.repo[`level${action.levelCount - 1}`]
           : action.data.repo.root;
@@ -86,15 +98,29 @@ const reducer = (state, action) => {
 
       return newState;
     case "RECV_CONTENT":
-      newState.data.content = action.data.repo.content.text;
+      newState.error = null;
+      if (action.data.repo.content?.isBinary) {
+        newState.error = {
+          type: "content",
+          message: "Binary files can't be rendered."
+        };
+      }
+      newState.data.content = action.data.repo.content.text || "";
       newState.data.oid = action.data.repo.content.oid;
       newState.data.name = state.currentPath.split("/").pop();
       return newState;
     case "RECV_SUBTREE":
+      newState.treeError = null;
       newState.data[action.oid] = action.data;
       return newState;
     case "SET_CURRENT_PATH":
       newState.currentPath = action.path;
+      return newState;
+    case "SET_ERROR":
+      newState.error = action.error;
+      return newState;
+    case "SET_TREE_ERROR":
+      newState.treeError = action.error;
       return newState;
   }
   return state;
@@ -175,25 +201,31 @@ const GithubStore = ({
   // I think it makes more sense to use the callback-style onCompleted,
   // onError, etc. here because nothing can really benefit from the declarative
   // state.
-  const { loading: rootLoading, error: rootError } = useQuery(
+  const { loading: rootLoading } = useQuery(
     INITIAL_QUERY,
     {
       variables,
       onCompleted: data => {
         dispatch({ type: "RECV_ROOT", data, levelCount });
+      },
+      onError: err => {
+        dispatch({
+          type: "SET_ERROR",
+          error: { type: "root", message: err.message }
+        });
       }
     },
     [variables]
   );
 
-  const [
-    fetchContent,
-    { loading: contentLoading, error: contentError }
-  ] = useLazyQuery(GET_CONTENT, {
-    onCompleted: data => {
-      dispatch({ type: "RECV_CONTENT", data });
+  const [fetchContent, { loading: contentLoading }] = useLazyQuery(
+    GET_CONTENT,
+    {
+      onCompleted: data => {
+        dispatch({ type: "RECV_CONTENT", data });
+      }
     }
-  });
+  );
 
   const [fetchSubtree] = useLazyQuery(GET_TREE, {
     onCompleted: data => {
@@ -201,6 +233,12 @@ const GithubStore = ({
         type: "RECV_SUBTREE",
         oid: data.repo.node.oid,
         data: data.repo.node.entries
+      });
+    },
+    onError: err => {
+      dispatch({
+        type: "SET_TREE_ERROR",
+        error: { message: err.message }
       });
     }
   });
@@ -228,8 +266,15 @@ const GithubStore = ({
           vars.path = "doesnotexist";
         });
 
+        dispatch({ type: "SET_ERROR", error: null });
         fetchContent({
-          variables: vars
+          variables: vars,
+          onError: err => {
+            dispatch({
+              type: "SET_ERROR",
+              error: { type: "content", message: err.message }
+            });
+          }
         });
       }
       dispatch({
@@ -253,10 +298,8 @@ const GithubStore = ({
         failureInjection("subtree-error", () => {
           vars.repo_name = "";
         });
-        failureInjection("empty-folder", () => {
-          vars.oid = "doesnotexist";
-        });
 
+        dispatch({ type: "SET_TREE_ERROR", error: null });
         fetchSubtree({
           variables: vars
         });
@@ -272,10 +315,10 @@ const GithubStore = ({
         path: state.currentPath,
         owner,
         repo_name,
+        error: state.error,
+        treeError: state.treeError,
         gh_ref: gh_ref || "HEAD",
-        contentError,
         contentLoading,
-        rootError,
         rootLoading,
         getData
       }}
@@ -402,6 +445,7 @@ const ROOT_FRAGMENT = gql`
         oid
         ... on Blob {
           text
+          isBinary
         }
       }
       tree: object(expression: $initialNode) @skip(if: $isBlob) {
@@ -435,6 +479,7 @@ const GET_CONTENT = gql`
       content: object(expression: $path) {
         oid
         ... on Blob {
+          isBinary
           text
         }
       }

@@ -18,8 +18,9 @@ const TreeNode = ({ item, path }) => {
   // this, but this works
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const { getData, data } = useContext(GithubContext);
+  const { getData, data, treeError } = useContext(GithubContext);
   const nodeData = data[item.oid];
+  const hasError = treeError && !nodeData;
 
   // If there's data on the first render, expand the tree (for deep links)
   useEffect(() => {
@@ -28,6 +29,11 @@ const TreeNode = ({ item, path }) => {
       setLoading(false);
     }
   }, [nodeData]);
+
+  if (hasError) {
+    setLoading(false);
+    setExpanded(false);
+  }
 
   const onClick = useCallback(
     e => {
@@ -81,14 +87,14 @@ export const TreeRoot = () => {
   const {
     data: { root },
     rootLoading,
-    rootError
+    error
   } = useContext(GithubContext);
 
   if (rootLoading) {
     return <Loading type="tree" />;
   }
 
-  if (rootError) {
+  if (error?.type === "root") {
     return null;
   }
 
