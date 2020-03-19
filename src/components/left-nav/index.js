@@ -61,7 +61,7 @@ const TreeNode = ({ item, path }) => {
   // getting wild
   return (
     <div
-      className={`${highlighted} flex px-4 py-1 hover:text-blue-600 transition ease-in-out duration-400 cursor-pointer`}
+      className={`${highlighted} flex px-4 py-1 transition ease-in-out duration-400 cursor-pointer`}
       onClick={onClick}
     >
       <div
@@ -70,13 +70,13 @@ const TreeNode = ({ item, path }) => {
         }`}
       />
       <li className="pl-1 select-none">
-        <span className={highlighted}>{item?.name}</span>
         {loading ? (
-          <Loading type="tree node" />
+          <span className={`${highlighted} hover:text-blue-600 flex justify-center`}>{item?.name}<Loading type="tree node" /></span>
         ) : (
+          <span><span className={`${highlighted} hover:text-blue-600`}>{item?.name}</span>
           <ul className={expanded ? "" : "hidden"}>
             {getItems(nodeData, path)}
-          </ul>
+          </ul></span>
         )}
       </li>
     </div>

@@ -7,15 +7,15 @@ export const Loading = ({ type }) => {
       message = "tree loading";
       break;
     case "content":
-      message = "content loading";
+      return <img class="pt-4 pl-4 w-8 h-8" src="/assets/bars.svg" />;
       break;
     case "tree node":
-      message = "node loading";
+      return <img class="pt-1 pl-2 w-5 h-5" src="/assets/bars.svg" />;
       break;
     default:
       console.error("unreachable!");
   }
-  return <div class="flex pl-4 pt-4 transition ease-in-out duration-700 text-gray-600">{message}</div>;
+  return message;
 };
 
 export default Loading;
