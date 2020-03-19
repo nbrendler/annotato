@@ -14,7 +14,6 @@ const Content = () => {
     repo_name,
     gh_ref,
     error,
-    contentLoading,
     rootLoading
   } = useContext(GithubContext);
 
@@ -41,7 +40,7 @@ const Content = () => {
     return [sections, anyDocs, anyCode];
   }, [content, name, owner, repo_name, gh_ref]);
 
-  if (rootLoading || contentLoading) {
+  if (rootLoading) {
     return <Loading type="content" />;
   }
 

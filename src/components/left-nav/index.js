@@ -18,7 +18,9 @@ const TreeNode = ({ item, path }) => {
   // this, but this works
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const { getData, data, treeError } = useContext(GithubContext);
+  const { getData, data, treeError, path: currentPath } = useContext(
+    GithubContext
+  );
   const nodeData = data[item.oid];
   const hasError = treeError && !nodeData;
 
@@ -55,13 +57,18 @@ const TreeNode = ({ item, path }) => {
     [item, getData, path, expanded, setExpanded]
   );
 
-  const highlighted = data.oid === item.oid ? "bg-blue-200" : "";
+  const loaded = data.oid === item.oid ? "bg-blue-200" : "";
+  const focused = currentPath === path.join("/");
 
-  // TODO: Maybe this should be split into smaller components, the classes are
-  // getting wild
+  if (focused && !loaded) {
+    setLoading(true);
+  } else if (loading && loaded) {
+    setLoading(false);
+  }
+
   return (
     <div
-      className={`${highlighted} flex px-4 py-1 transition ease-in-out duration-400 cursor-pointer`}
+      className={`${loaded} flex px-4 py-1 transition ease-in-out duration-400 cursor-pointer`}
       onClick={onClick}
     >
       <div
@@ -71,12 +78,19 @@ const TreeNode = ({ item, path }) => {
       />
       <li className="pl-1 select-none">
         {loading ? (
-          <span className={`${highlighted} hover:text-blue-600 flex justify-center`}>{item?.name}<Loading type="tree node" /></span>
+          <span className={`${loaded} hover:text-blue-600 flex justify-center`}>
+            {item?.name}
+            <Loading type="tree node" />
+          </span>
         ) : (
-          <span><span className={`${highlighted} hover:text-blue-600`}>{item?.name}</span>
-          <ul className={expanded ? "" : "hidden"}>
-            {getItems(nodeData, path)}
-          </ul></span>
+          <span>
+            <span className={`${loaded} hover:text-blue-600`}>
+              {item?.name}
+            </span>
+            <ul className={expanded ? "" : "hidden"}>
+              {getItems(nodeData, path)}
+            </ul>
+          </span>
         )}
       </li>
     </div>

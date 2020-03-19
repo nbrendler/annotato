@@ -1,11 +1,11 @@
 // # lp.js
 //
 // This library contains the code we use to 'implement' literate programming
-// (lp ) -- parsing source code comments in the code into HTML that can be
+// (lp) -- parsing source code comments in the code into HTML that can be
 // displayed in the UI. The code here (and this app in general) is very heavily
 // inspired by [Docco.js](https://github.com/jashkenas/docco), which is a bit
 // dated, but I admire for its simplicity in solving the problem.
-//
+
 // `parse` uses a very simple algorithm that is ported directly from [Docco's
 // implementation](https://github.com/jashkenas/docco/blob/master/docco.litcoffee#main-documentation-generation-functions)
 //
@@ -17,7 +17,7 @@
 // `commentFilter` regex, like hashbangs), then we start a new code block. We
 // keep collecting lines until we find another comment and start all over. As a
 // result, we end up with alternating blocks of `Comment | Code | Comment |
-// Code` which are then paired into one `Comment | Code` section and displayed
+// Code` which are then paired into one `Section(Comment | Code)` and displayed
 // in the UI.
 //
 // This is very limited (doesn't work with multiline comments, for example). I
