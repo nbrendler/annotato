@@ -82,7 +82,7 @@ For detailed explanation on how things work, checkout the [CLI Readme](https://g
 ### Failure Injections
 
 There are a few failure injections that can be used in dev to test error states
-manually.
+manually. To use an injection, add `?inject=${Injection Name}` to the URL.
 
 | Injection Name  | Purpose                                             |
 | --------------  | --------------------------------------------------- |
@@ -90,4 +90,3 @@ manually.
 | `content-error` | Causes the next content query to fail.              |
 | `content-null`  | Causes the next content query to return null.       |
 | `subtree-error` | Causes the next subtree query to fail.              |
-| `empty-folder`  | Causes the next subtree query to return no entries. |
