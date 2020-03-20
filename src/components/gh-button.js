@@ -26,7 +26,7 @@ const GithubButton = () => {
         return (
           <a
             onClick={onClick(path)}
-            className="bg-blue-400 hover:bg-blue-500 cursor-pointer text-white font-bold py-2 px-4 rounded"
+            className="bg-blue-400 transition duration-100 ease-in-out hover:bg-blue-500 cursor-pointer text-white font-bold py-2 px-4 rounded block w-full lg:w-1/2 lg:mx-auto"
           >
             Sign in with GitHub
           </a>
