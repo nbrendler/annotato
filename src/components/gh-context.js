@@ -1,39 +1,60 @@
+// # gh-context.js
+//
+// This file contains the context object that is used to store data we get from
+// the Github API, along with the Redux-lite state that comes with the
+// `useReducer` hook in Preact. This was my first foray into (p)react hooks and
+// using the context so things are a bit messy. Code reviews welcome.
+//
+// Much of the complexity (I think) stems from my stubborn refusal when
+// writing this to have more than one GraphQL request necessary to load the
+// initial page. Conceptually things would be simpler if I could do separate
+// requests for the content and the tree view, but the tree view actually would
+// require `N` requests to render deep links at depth `N`. Thus I ended up with
+// the imperative mangling of the GraphQL query (`addLevels`) seen below.
+//
+// From a code architecture standpoint, I prefer to have all of the code that
+// deals with a third party API isolated into as few files as possible. Here
+// the context exposes functions that components can use to get data from the
+// API but all the GraphQL details are encapsulated, similar to how you might
+// use bindActionCreators in Redux to bind UI actions with the dispatcher. This
+// gives some flexibility in swapping out parts of this data layer and also
+// makes the components themselves more straightforward.
+
+// On imports -- I generally try to follow the convention from Python's PEP8 for
+// organizing them, with 3 blocks separated by newlines:
+//
+// * Standard Library imports (not applicable here)
+// * Third Party Libraries (preact, apollo, etc)
+// * Imports from elsewhere in this repo (src/lib/util here)
 import { h, createContext } from "preact";
 import { route } from "preact-router";
 import { useEffect, useReducer, useCallback, useMemo } from "preact/hooks";
 import { gql, useQuery, useLazyQuery } from "@apollo/client";
 
-let inject = [];
-const initFailureInjections = value => {
-  inject.push(value);
-};
+import {
+  getPathFragments,
+  enableFailureInjection,
+  createFailureInjection
+} from "../lib/util";
 
-const failureInjection = (name, callback) => {
-  if (process.env.NODE_ENV === "development" && inject.indexOf(name) > -1) {
-    callback();
-  }
-};
-
-const getParents = path => {
-  let parts = path.split("/");
-
-  // If it's a blob, we discard the file name
-  // If it's a tree, we don't need this result either (it is initialNode in the
-  // query)
-  parts.pop();
-
-  return parts.reduce((paths, part, idx) => {
-    if (idx === 0) {
-      paths.push(part);
-      return paths;
-    }
-
-    let partial = `${paths[idx - 1]}/${part}`;
-    paths.push(partial);
-    return paths;
-  }, []);
-};
-
+// ## The state
+// For the state layout I've put most of the API result data into the `data`
+// key. `data` will have more children than shown in the initial state as we
+// seen below (`RECV_SUBTREE`), but these are the main bits:
+// * `data.root` - the list of tree entries that forms the top-level of the tree
+// * `data.content` - the current file content (text). It can be null or empty if the file is binary, empty, or just not found.
+// * `data.name` - the name of the current file. The extension drives the syntax highlighting
+// * `currentPath` - represents the currently focused file or folder (blob or tree, in API parlance), relative to the repository root. Example: when viewing this file in the tool, the path should be `src/components/gh-context.js`.
+// * `error` - holds any GraphQL errors for the root query or content query
+// * `treeError` - holds any GraphQL errors for the subtree queries. These are kept separate because a failure doesn't affect the rest of the app like a root or content failure does.
+//
+// > :memo: Using nested state like this for a reducer is something I usually
+// > try to avoid, as it can lead to subtle bugs where the sub-object hasn't
+// > changed from the root's perspective (because it's a reference), and
+// > therefore the app doesn't re-render when you expect. I've sidestepped this
+// > by just returning a brand new state (below) in the reducer, which probably
+// > is causing more renders than necessary. With a more complicated state I
+// > would probably reach for Redux and use Immutable.js to reduce the bugs.
 const initialState = {
   data: {
     root: null,
@@ -45,14 +66,32 @@ const initialState = {
   treeError: null
 };
 
+// This reducer should be familiar if you're worked with Redux.  There are
+// `RECV_*` events that are dispatched whenever we get a successful GraphQL
+// result. `SET_*` events do some bookkeeping when the path changes or an error
+// occurs.
+//
+// The root query which fires on the first load changes depending on where
+// we're loading the repository root, a file, or a folder directly. This is
+// delineated in the scenarios later on.
 const reducer = (state, action) => {
   let newState = Object.assign({}, state);
   switch (action.type) {
     case "RECV_ROOT":
       newState.error = null;
-      // TODO: probably need to guard against non-existent repos
+
+      // We don't need to worry about root being null because the repo not
+      // existing will cause a GraphQL error.
       newState.data.root = action.data.repo.root.entries;
 
+      // The implicit assumption made by the query is that the README is called
+      // `README.md`. Github supports many other names of readme files, but
+      // there isn't currently a way to just get the readme, whatever it's
+      // called (a regression from the v3 API).
+      //
+      // More info is [here](https://stackoverflow.com/questions/46248607/how-to-get-readme-md-from-github-graphql-api)
+      // I've decided not to try and test for every possible readme name in the
+      // query although that would certainly work.
       newState.data.readme = action.data.repo.readme;
 
       // Add all of the level information (when given a deep link) to the state.
@@ -71,7 +110,7 @@ const reducer = (state, action) => {
           };
           return newState;
         }
-        // text can be null if the file is empty
+        // text can still be null if the file is empty
         newState.data.content = action.data.repo.blob.text || "";
         let parent = action.levelCount
           ? action.data.repo[`level${action.levelCount - 1}`]
@@ -80,6 +119,9 @@ const reducer = (state, action) => {
         // to get the name/oid we have to find this blob in the list of parents
         // We _could_ get the name from the path, but we need the oid anyway so
         // I think this is better/more explicit;
+        //
+        // Getting the name seems to be surprisingly hard using the v4 API?
+        // Maybe this is a case to use the REST API.
         parent.entries.forEach(e => {
           if (e.oid === action.data.repo.blob.oid) {
             newState.data.name = e.name;
@@ -98,6 +140,9 @@ const reducer = (state, action) => {
       return newState;
     case "RECV_CONTENT":
       newState.error = null;
+      // > :memo: I would like to use the new `?` coalescing operator here to
+      // > say `action.data.repo.content?.isBinary` but it doesn't work with the
+      // > prod build unless I specify `--no-esm`.
       if (action.data.repo.content && action.data.repo.content.isBinary) {
         newState.error = {
           type: "content",
@@ -125,6 +170,7 @@ const reducer = (state, action) => {
   return state;
 };
 
+// Poor man's redux-logger for use in dev
 const withLogging = (state, action) => {
   const newState = reducer(state, action);
   console.log("ACTION: ", action, state, newState);
@@ -133,38 +179,38 @@ const withLogging = (state, action) => {
 
 export const GithubContext = createContext();
 
-/* The props to this component mirror how URLs work on GitHub (GH), so that you
- * can effectively copy/paste from GH to view in the tool.
- *
- * For GraphQL queries, we always need the following info:
- * * The tree entries from the root of the repo to display the left nav
- * * The list of branches and the name of the default branch
- *
- * Anything else is conditional on what props are defined, e.g. we don't need
- * the README contents if the initial load is a file.
- *
- * There are these cases to consider:
- * 1. The root path /github.com/:owner/:repo_name
- * 2. A blob (file) /github.com/:owner/:repo_name/blob/:gh_ref/:gh_path
- * 3. A tree (folder) below the root /github.com/:owner/:repo_name/tree/:gh_ref/:gh_path
- * 4. The root path with a non-default branch /github.com/:owner/:repo_name/tree/:gh_ref
- *
- * For (1), only `owner` and `root` are defined. `gh_ref` will point to the
- * head and we can attempt to find the README file to display as the content.
- * This is the `ROOT_FRAGMENT` below.
- *
- * For (2), we can load the text content of the blob in the initial request. We
- * don't need the README, but we may need to do multiple tree queries to be
- * able to drill down to where the blob is, if the blob is not at the root.
- *
- * For (3), we can attempt to find a README at the level of this tree, and we
- * need multiple tree queries starting at the root to find this subtree.
- *
- * For (4), the query is the same as `ROOT_FRAGMENT` with a different ref supplied.
- *
- * Other considerations:
- * * Paths with trailing slashes should work the same as non-trailing slashes
- */
+// The props to this component mirror how URLs work on GitHub (GH), so that you
+// can effectively copy/paste from GH to view in the tool.
+//
+// For GraphQL queries, we always need the following info:
+// * The tree entries from the root of the repo to display the left nav
+// * The list of branches and the name of the default branch
+//
+// Anything else is conditional on what props are defined, e.g. we don't need
+// the README contents if the initial load is a file.
+//
+// There are these cases to consider:
+// 1. The root path /github.com/:owner/:repo_name
+// 2. A blob (file) /github.com/:owner/:repo_name/blob/:gh_ref/:gh_path
+// 3. A tree (folder) below the root /github.com/:owner/:repo_name/tree/:gh_ref/:gh_path
+// 4. The root path with a non-default branch /github.com/:owner/:repo_name/tree/:gh_ref
+//
+// For (1), only `owner` and `root` are defined. `gh_ref` will point to the
+// head and we can attempt to find the README file to display as the content.
+// This is the `ROOT_FRAGMENT` below.
+//
+// For (2), we can load the text content of the blob in the initial request. We
+// don't need the README, but we may need to do multiple tree queries to be
+// able to drill down to where the blob is, if the blob is not at the root.
+//
+// For (3), we can attempt to find a README at the level of this tree, and we
+// need multiple tree queries starting at the root to find this subtree.
+//
+// For (4), the query is the same as `ROOT_FRAGMENT` with a different ref supplied.
+//
+// Other considerations:
+// * Paths with trailing slashes should work the same as non-trailing slashes
+
 const GithubStore = ({
   owner,
   repo_name,
@@ -174,10 +220,13 @@ const GithubStore = ({
   children,
   matches: { inject }
 }) => {
-  const [state, dispatch] = useReducer(withLogging, initialState);
+  const [state, dispatch] = useReducer(
+    process.env.NODE_ENV === "development" ? withLogging : reducer,
+    initialState
+  );
 
   useEffect(() => {
-    initFailureInjections(inject);
+    enableFailureInjection(inject);
   }, [inject]);
 
   let [variables, levelCount] = useMemo(
@@ -189,11 +238,11 @@ const GithubStore = ({
         gh_ref || "HEAD",
         gh_path || ""
       ),
-    [owner, repo_name, gh_path, gh_ref, type]
+    [owner, repo_name]
   );
 
   // force a gql server error by giving a non-existent repo
-  failureInjection("gql-error", () => {
+  createFailureInjection("gql-error", () => {
     variables.repo_name = "";
   });
 
@@ -256,12 +305,12 @@ const GithubStore = ({
         const vars = { owner, repo_name, path: `${gh_ref}:${gh_path}` };
 
         // this will cause the content fetch to fail
-        failureInjection("content-error", () => {
+        createFailureInjection("content-error", () => {
           vars.repo_name = "";
         });
 
         // this will make content null in the GQL response, no error
-        failureInjection("content-null", () => {
+        createFailureInjection("content-null", () => {
           vars.path = "doesnotexist";
         });
 
@@ -304,7 +353,7 @@ const GithubStore = ({
       } else {
         let vars = { owner, repo_name, oid: item.oid };
 
-        failureInjection("subtree-error", () => {
+        createFailureInjection("subtree-error", () => {
           vars.repo_name = "";
         });
 
@@ -407,7 +456,7 @@ const getQueryVars = (owner, repo_name, type, gh_ref, gh_path) => {
     isBlob: type === "blob"
   };
 
-  let levels = getParents(gh_path);
+  let levels = getPathFragments(gh_path);
 
   addLevels(levels.length);
 
