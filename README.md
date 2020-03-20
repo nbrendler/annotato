@@ -16,38 +16,8 @@ can be found in [Examples](#examples).
 
 ## Motivation
 
-One of the best ways to learn as a developer is to read code that others have
-written, doubly so if they've taken the time to expound their work in a literate
-style. Understanding code that you didn't write is a very valuable skill. This
-tool attempts to help bridge that understanding gap, while also encouraging the
-creation of purely expository comments that are designed to teach future readers
-of the source code (or yourself, six months later).
-
-Most code out there falls into one of these categories:
-1. Very little to no comments. Great for simple programs or scripts with simple
-   problems to solve.
-2. Lots of focused comments that explain tricky or confusing bits, or attempt to
-   document architectural decisions, e.g. "this will trigger when the input is
-   null", or "I'm using this algorithm because I believe it performs best given
-   these assumptions".
-3. Thorough, well-written comments with lots of examples that are designed to be
-   used for generated web documentation with tools like Javadoc.
-4. Literate-style code. Long, wordy comments (or just prose intermingling with
-   source code, if your tooling supports it) to explain theory- or
-   math-heavy code, or just the logic of the programmer that wrote it.
-
-In the case of (2), while these comments can be very helpful to someone who's
-attempting to _change_ the code, much more can be said to someone who's
-attempting to _learn_ from it. Code that falls in bucket (3) is often very
-well-organized and not hard to follow for an experienced veteran, but most of
-the comments are geared towards those who wish to _use_ the library or tool and
-might not explain all the magic that makes it go.
-
-This tool is to help _learn_ from code, so it fits most naturally with code
-written in the style of (4). While a lot of the existing literate code out there
-is academic, this can work for any kind of program as evidenced by the examples
-below. Really, any tech blog or tutorial with lots of code examples could be
-reimagined in this way!
+Check out [this blog post](https://www.nikbrendler.com/annotato/) to read more
+about motivation for using this tool.
 
 ## Examples
 
