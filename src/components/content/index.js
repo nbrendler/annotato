@@ -44,7 +44,7 @@ const Content = () => {
     return <Loading type="content" />;
   }
 
-  if (!error && memoized.length === 0) {
+  if (!error && data.root && memoized.length === 0) {
     contentError = { message: "No content" };
   }
 
