@@ -6,10 +6,10 @@ export const Loading = ({ type }) => {
   let message;
   switch (type) {
     case "tree":
-      message = "tree loading";
+      return <div class="spinner"><div class="spinner-icon"></div></div>;
       break;
     case "content":
-      return <img class="pt-4 pl-4 w-8 h-8" src={bars} />;
+      return <div class="spinner"><div class="spinner-icon"></div></div>;
     case "tree node":
       return <img class="pt-1 pl-2 w-5 h-5" src={bars} />;
     default:

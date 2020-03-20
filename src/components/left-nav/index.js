@@ -112,7 +112,7 @@ export const TreeRoot = () => {
     return null;
   }
 
-  return <ul className="border-r text-gray-700">{getItems(root, [])}</ul>;
+  return <ul className="border-r text-gray-700 pt-4">{getItems(root, [])}</ul>;
 };
 
 export default TreeRoot;
