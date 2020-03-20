@@ -1,12 +1,18 @@
 # annotato
 [![Netlify Status](https://api.netlify.com/api/v1/badges/11c1e4d4-5928-457e-a3c4-9118a510f247/deploy-status)](https://app.netlify.com/sites/awesome-chandrasekhar-5b459a/deploys)
 
-Annotato is a tool designed for viewing source code on the web that is written
-in a [literate programming](https://en.wikipedia.org/wiki/Literate_programming)
-style.
+Annotato is a tool designed for viewing source code with lots of comments,
+whether they are written in a [literate programming](https://en.wikipedia.org/wiki/Literate_programming)
+style or just very well-documented.
 
 Main technologies used are [Preact](https://preactjs.com),
 [GraphQL](https://graphql.org) (via [Apollo](https://www.apollographql.com)).
+
+## Usage
+
+To view a github repository in the tool, navigate to
+`https://annotato.nikbrendler.com/github.com/:owner/:repo`. Some example links
+can be found in [Examples](#examples).
 
 ## Motivation
 
@@ -51,8 +57,12 @@ Here's a few examples of code that are written in this style.
     their docs, using [docco](https://github.com/jashkenas/docco/blob/master/docco.js).
 
 * The annotato source code! I recommend starting with the
-[data layer stuff](./src/components/gh-context.js), which is the main meat of
-this tool, or the [literate programming stuff](./src/lib/lp.js).
+    [data layer stuff](./src/components/gh-context.js), which is the main meat of
+    this tool, or the [literate programming stuff](./src/lib/lp.js).
+
+* [serde-json](https://github.com/serde-rs/json/blob/HEAD/src/de.rs) - JSON
+    serializer for rust that is an example of a non-literate (but
+    well-documented) library.
 
 Feel free to open an issue/PR to add other examples!
 
