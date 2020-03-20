@@ -79,13 +79,13 @@ const TreeNode = ({ item, path }) => {
       <li className="pl-1 select-none">
         {loading ? (
           <span className={`${loaded} hover:text-blue-600 flex justify-center`}>
-            {item?.name}
+            {(item && item.name) || null}
             <Loading type="tree node" />
           </span>
         ) : (
           <span>
             <span className={`${loaded} hover:text-blue-600`}>
-              {item?.name}
+              {(item && item.name) || null}
             </span>
             <ul className={expanded ? "" : "hidden"}>
               {getItems(nodeData, path)}
@@ -108,7 +108,7 @@ export const TreeRoot = () => {
     return <Loading type="tree" />;
   }
 
-  if (error?.type === "root") {
+  if (error && error.type === "root") {
     return null;
   }
 

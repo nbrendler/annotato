@@ -23,7 +23,7 @@ const Content = () => {
 
   // special case for the root
   if (path === "") {
-    content = data.readme?.text;
+    content = (data.readme && data.readme.text) || "";
     name = "README.md";
   }
   const [memoized, anyDocs, anyCode] = useMemo(() => {
@@ -45,7 +45,7 @@ const Content = () => {
   }
 
   if (!error && memoized.length === 0) {
-    contentError = { message: "Empty file" };
+    contentError = { message: "No content" };
   }
 
   if (contentError) {

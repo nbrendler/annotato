@@ -87,7 +87,7 @@ const reducer = (state, action) => {
           }
         });
         // Scenario: Rendering a link directly to a tree
-      } else if (action.data.repo.tree?.entries) {
+      } else if (action.data.repo.tree) {
         const treeData = action.data.repo.tree;
         newState.data.oid = treeData.oid;
         newState.data[treeData.oid] = treeData.entries;
@@ -98,7 +98,7 @@ const reducer = (state, action) => {
       return newState;
     case "RECV_CONTENT":
       newState.error = null;
-      if (action.data.repo.content?.isBinary) {
+      if (action.data.repo.content && action.data.repo.content.isBinary) {
         newState.error = {
           type: "content",
           message: "Binary files can't be rendered."
