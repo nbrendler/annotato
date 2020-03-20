@@ -63,9 +63,8 @@ const reducer = (state, action) => {
       }
 
       // Scenario: Rendering a link directly to a blob
-      const blob = action.data.repo.blob;
-      if (blob) {
-        if (blob.isBinary) {
+      if (action.data.repo.blob) {
+        if (action.data.repo.blob.isBinary) {
           newState.error = {
             type: "content",
             message: "Binary files can't be rendered."
@@ -73,7 +72,7 @@ const reducer = (state, action) => {
           return newState;
         }
         // text can be null if the file is empty
-        newState.data.content = blob.text || "";
+        newState.data.content = action.data.repo.blob.text || "";
         let parent = action.levelCount
           ? action.data.repo[`level${action.levelCount - 1}`]
           : action.data.repo.root;
@@ -179,7 +178,7 @@ const GithubStore = ({
 
   useEffect(() => {
     initFailureInjections(inject);
-  }, []);
+  }, [inject]);
 
   let [variables, levelCount] = useMemo(
     () =>
@@ -190,7 +189,7 @@ const GithubStore = ({
         gh_ref || "HEAD",
         gh_path || ""
       ),
-    [owner, repo_name]
+    [owner, repo_name, gh_path, gh_ref, type]
   );
 
   // force a gql server error by giving a non-existent repo
@@ -282,7 +281,17 @@ const GithubStore = ({
         path: gh_path
       });
     }
-  }, [variables, dispatch, gh_ref, gh_path]);
+  }, [
+    variables,
+    dispatch,
+    gh_ref,
+    gh_path,
+    type,
+    state.currentPath,
+    fetchContent,
+    owner,
+    repo_name
+  ]);
 
   const getData = useCallback(
     (item, paths) => {
@@ -305,7 +314,7 @@ const GithubStore = ({
         });
       }
     },
-    [dispatch, gh_ref]
+    [dispatch, gh_ref, fetchSubtree, owner, repo_name]
   );
 
   return (

@@ -54,7 +54,7 @@ const TreeNode = ({ item, path }) => {
         getData(item, path);
       }
     },
-    [item, getData, path, expanded, setExpanded]
+    [item, getData, path, expanded, setExpanded, nodeData]
   );
 
   const loaded = data.oid === item.oid ? "bg-blue-200" : "";

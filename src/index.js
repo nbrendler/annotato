@@ -43,6 +43,7 @@ const client = new ApolloClient({
   })
 });
 
+// eslint-disable-next-line react/display-name
 export default () => (
   <ApolloProvider client={client}>
     <App />
