@@ -30,10 +30,6 @@ Here's a few examples of code that are written in this style.
     [data layer stuff](./src/components/gh-context.js), which is the main meat of
     this tool, or the [literate programming stuff](./src/lib/lp.js).
 
-* [serde-json](https://github.com/serde-rs/json/blob/HEAD/src/de.rs) - JSON
-    serializer for rust that is an example of a non-literate (but
-    well-documented) library.
-
 Feel free to open an issue/PR to add other examples!
 
 ## Development

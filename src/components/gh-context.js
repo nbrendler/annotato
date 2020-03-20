@@ -48,7 +48,7 @@ import {
 // * `error` - holds any GraphQL errors for the root query or content query
 // * `treeError` - holds any GraphQL errors for the subtree queries. These are kept separate because a failure doesn't affect the rest of the app like a root or content failure does.
 //
-// > :memo: Using nested state like this for a reducer is something I usually
+// > Note: Using nested state like this for a reducer is something I usually
 // > try to avoid, as it can lead to subtle bugs where the sub-object hasn't
 // > changed from the root's perspective (because it's a reference), and
 // > therefore the app doesn't re-render when you expect. I've sidestepped this
@@ -140,7 +140,7 @@ const reducer = (state, action) => {
       return newState;
     case "RECV_CONTENT":
       newState.error = null;
-      // > :memo: I would like to use the new `?` coalescing operator here to
+      // > Note: I would like to use the new `?` coalescing operator here to
       // > say `action.data.repo.content?.isBinary` but it doesn't work with the
       // > prod build unless I specify `--no-esm`.
       if (action.data.repo.content && action.data.repo.content.isBinary) {
